@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, animate } from 'motion/react'
 import { useRepoStats, daysSince, shortDate, ago } from './useRepoStats.js'
 import { Barcode } from './Bits.jsx'
+import * as sfx from './sfx.js'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -34,8 +35,8 @@ function Clip({ title, reduced }) {
       preload="auto"
       aria-label={`${title.name}: ${title.clipCaption}`}
     >
-      <source src={BASE + title.clip.replace('.mp4', '.webm')} type="video/webm" />
       <source src={BASE + title.clip} type="video/mp4" />
+      <source src={BASE + title.clip.replace('.mp4', '.webm')} type="video/webm" />
     </video>
   )
 }
@@ -130,7 +131,14 @@ export function Sheet({ title, reduced }) {
               </li>
             ))}
           </motion.ol>
-          <motion.a className="repo" href={url} target="_blank" rel="noreferrer" variants={rise}>
+          <motion.a
+            className="repo"
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            variants={rise}
+            onClick={() => sfx.play('link')}
+          >
             <span className="repo-label">REPO</span>
             <span className="repo-url">{title.repo}</span>
             <span className="repo-arrow" aria-hidden="true">
