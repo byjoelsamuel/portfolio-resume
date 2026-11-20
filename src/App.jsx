@@ -5,6 +5,7 @@ import Boot from './Boot.jsx'
 import DiscCase from './DiscCase.jsx'
 import { Sheet, EmptySheet } from './Panel.jsx'
 import { Emblem } from './Bits.jsx'
+import FitBox from './FitBox.jsx'
 
 // Boot plays once per tab session, never with reduced motion.
 function shouldBoot() {
@@ -113,13 +114,15 @@ export default function App() {
             </section>
 
             <aside className="right" id="sheet" ref={panelRef} aria-live="polite">
-              <AnimatePresence mode="wait">
-                {selected ? (
-                  <Sheet key={selected.id} title={selected} reduced={reduced} />
-                ) : (
-                  <EmptySheet key="empty" titles={TITLES} onPick={pick} />
-                )}
-              </AnimatePresence>
+              <FitBox>
+                <AnimatePresence mode="wait">
+                  {selected ? (
+                    <Sheet key={selected.id} title={selected} reduced={reduced} />
+                  ) : (
+                    <EmptySheet key="empty" titles={TITLES} onPick={pick} />
+                  )}
+                </AnimatePresence>
+              </FitBox>
             </aside>
           </main>
 
