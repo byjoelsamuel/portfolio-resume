@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, animate } from 'motion/react'
 import { useRepoStats, daysSince, shortDate, ago } from './useRepoStats.js'
 import { Barcode } from './Bits.jsx'
@@ -24,8 +24,16 @@ function DayCounter({ to, reduced }) {
 const cols = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
 
 function Clip({ title, reduced }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    if (reduced) v.pause()
+    else v.play().catch(() => {})
+  }, [reduced])
   return (
     <video
+      ref={ref}
       className="clip"
       poster={BASE + title.poster}
       autoPlay={!reduced}
@@ -68,7 +76,6 @@ export function Sheet({ title, reduced }) {
 
       <motion.header className="sheet-kicker" variants={rise}>
         <span>TITLE {title.no}/03</span>
-        <span className="kana">{title.kana}</span>
         <span>{title.code}</span>
       </motion.header>
 
@@ -170,7 +177,6 @@ export function EmptySheet({ titles, onPick }) {
             <button type="button" onClick={() => onPick(t.id)}>
               <span>{t.no}</span>
               {t.name}
-              <i>{t.kana}</i>
             </button>
           </li>
         ))}

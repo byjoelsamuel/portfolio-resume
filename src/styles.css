@@ -14,7 +14,7 @@
   --f-display: 'Michroma', 'Eurostile', 'Microgramma', sans-serif;
   --f-body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --f-mono: 'Space Mono', ui-monospace, monospace;
-  --f-kana: 'DotGothic16', sans-serif;
+  --f-lcd: 'DotGothic16', sans-serif;
 
   color-scheme: light;
 }
@@ -72,11 +72,6 @@ button {
 :focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
-}
-
-.kana {
-  font-family: var(--f-kana);
-  letter-spacing: 0.08em;
 }
 
 .chrome {
@@ -188,12 +183,7 @@ button {
   border-radius: 999px;
 }
 
-.boot-corner.boot-tr {
-  font-family: var(--f-kana);
-}
-
 .boot-tl { top: 20px; left: 20px; }
-.boot-tr { top: 20px; right: 20px; }
 .boot-bl { bottom: 20px; left: 20px; }
 .boot-br { bottom: 20px; right: 20px; }
 
@@ -262,6 +252,24 @@ button {
   background: #fff;
 }
 
+@media (max-width: 600px) {
+  .mast-snd .lbl {
+    display: none;
+  }
+
+  .mast-snd {
+    padding: 7px 10px;
+  }
+
+  .mast-right {
+    gap: 6px;
+  }
+
+  .mast-gh {
+    display: none; /* the footer links to GitHub too */
+  }
+}
+
 .mast-snd[aria-pressed='true'] span {
   color: var(--blue);
 }
@@ -306,9 +314,13 @@ button {
   margin: 0 0.4em;
 }
 
+/* six identical copies; sliding one copy (1/6) to the right and snapping back is invisible */
 @keyframes ticker {
+  from {
+    transform: translateX(-16.6667%);
+  }
   to {
-    transform: translateX(-50%);
+    transform: translateX(0);
   }
 }
 
@@ -339,12 +351,6 @@ button {
   font: 400 11px/1 var(--f-mono);
   letter-spacing: 0.3em;
   color: var(--ink-soft);
-}
-
-.hero-kicker .kana {
-  font-size: 13px;
-  letter-spacing: 0.18em;
-  color: var(--blue);
 }
 
 .hero-name {
@@ -782,11 +788,6 @@ button {
   color: var(--ink-soft);
 }
 
-.sheet-kicker .kana {
-  color: var(--blue);
-  font-size: 12px;
-}
-
 .sheet-name {
   margin: 12px 0 4px;
   font-size: min(46px, 8.4cqw);
@@ -957,7 +958,7 @@ button {
 }
 
 .lcd-digits {
-  font: 400 46px/1 var(--f-kana);
+  font: 400 46px/1 var(--f-lcd);
   letter-spacing: 0.06em;
   text-shadow: 2px 2px 0 rgba(22, 40, 120, 0.15);
 }
@@ -1118,15 +1119,6 @@ button {
   color: var(--blue);
 }
 
-.tray-index button i {
-  margin-left: auto;
-  font-style: normal;
-  font-family: var(--f-kana);
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--ink-soft);
-}
-
 .tray-barcode {
   margin-top: auto;
   width: 160px;
@@ -1203,11 +1195,9 @@ button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track,
-  .blink {
-    animation: none;
-  }
+html[data-motion='off'] .ticker-track,
+html[data-motion='off'] .blink {
+  animation: none;
 }
 
 /* ───────────────────────── desktop: fit the window, no page scroll ───────────────────────── */
