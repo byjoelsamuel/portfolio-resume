@@ -20,6 +20,26 @@ function DayCounter({ to, reduced }) {
   return <span className="lcd-digits">{String(n).padStart(3, '0')}</span>
 }
 
+const cols = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
+
+function Clip({ title, reduced }) {
+  return (
+    <video
+      className="clip"
+      poster={BASE + title.poster}
+      autoPlay={!reduced}
+      muted
+      loop
+      playsInline
+      preload="auto"
+      aria-label={`${title.name}: ${title.clipCaption}`}
+    >
+      <source src={BASE + title.clip.replace('.mp4', '.webm')} type="video/webm" />
+      <source src={BASE + title.clip} type="video/mp4" />
+    </video>
+  )
+}
+
 export function Sheet({ title, reduced }) {
   const stats = useRepoStats(title)
   const day = daysSince(stats.started) + 1
@@ -34,6 +54,17 @@ export function Sheet({ title, reduced }) {
       exit={{ opacity: 0, x: 24, transition: { duration: 0.15 } }}
       transition={{ staggerChildren: reduced ? 0 : 0.06 }}
     >
+      {/* one sweep across the page each time you switch titles */}
+      {!reduced && (
+        <motion.span
+          className="sweep"
+          aria-hidden="true"
+          initial={{ x: '-120%' }}
+          animate={{ x: '120%' }}
+          transition={{ duration: 0.75, ease: [0.65, 0, 0.35, 1] }}
+        />
+      )}
+
       <motion.header className="sheet-kicker" variants={rise}>
         <span>TITLE {title.no}/03</span>
         <span className="kana">{title.kana}</span>
@@ -47,64 +78,67 @@ export function Sheet({ title, reduced }) {
         {title.deck}
       </motion.p>
 
-      <motion.figure className="sheet-shot" variants={rise}>
-        <img src={BASE + title.shot} alt={`${title.name}, ${title.shotCaption}`} />
-        <figcaption>
-          <span>FIG.{title.no}</span> {title.shotCaption}
-        </figcaption>
-      </motion.figure>
+      <div className="sheet-grid">
+        <motion.div className="sheet-col sheet-a" variants={cols}>
+          <motion.figure className="sheet-clip" variants={rise}>
+            <Clip title={title} reduced={reduced} />
+            <figcaption>
+              <span>FIG.{title.no}</span> {title.clipCaption}
+            </figcaption>
+          </motion.figure>
 
-      <div className="sheet-cols">
-        <motion.p className="sheet-body" variants={rise}>
-          {title.body}
-        </motion.p>
-        <motion.ol className="sheet-tracks" variants={rise}>
-          {title.tracks.map((t, i) => (
-            <li key={t}>
-              <span>{String(i + 1).padStart(2, '0')}</span>
-              {t}
-            </li>
-          ))}
-        </motion.ol>
+          <motion.div className="lcd" variants={rise} aria-label={`In service for ${day} days`}>
+            <div className="lcd-main">
+              <span className="lcd-label">IN SERVICE · DAY</span>
+              <DayCounter to={day} reduced={reduced} />
+            </div>
+            <dl className="lcd-rows">
+              <div>
+                <dt>first commit</dt>
+                <dd>{shortDate(stats.started)}</dd>
+              </div>
+              <div>
+                <dt>last patch</dt>
+                <dd>{ago(stats.pushed)}</dd>
+              </div>
+              <div>
+                <dt>latest</dt>
+                <dd>{stats.version}</dd>
+              </div>
+            </dl>
+          </motion.div>
+
+          <motion.dl className="sheet-specs" variants={rise}>
+            {title.specs.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </motion.dl>
+        </motion.div>
+
+        <motion.div className="sheet-col sheet-b" variants={cols}>
+          <motion.p className="sheet-body" variants={rise}>
+            {title.body}
+          </motion.p>
+          <motion.ol className="sheet-tracks" variants={rise}>
+            {title.tracks.map((t, i) => (
+              <li key={t}>
+                <span>{String(i + 1).padStart(2, '0')}</span>
+                {t}
+              </li>
+            ))}
+          </motion.ol>
+          <motion.a className="repo" href={url} target="_blank" rel="noreferrer" variants={rise}>
+            <span className="repo-label">REPO</span>
+            <span className="repo-url">{title.repo}</span>
+            <span className="repo-arrow" aria-hidden="true">
+              →
+            </span>
+          </motion.a>
+        </motion.div>
       </div>
-
-      <motion.div className="lcd" variants={rise} aria-label={`In service for ${day} days`}>
-        <div className="lcd-main">
-          <span className="lcd-label">IN SERVICE · DAY</span>
-          <DayCounter to={day} reduced={reduced} />
-        </div>
-        <dl className="lcd-rows">
-          <div>
-            <dt>first commit</dt>
-            <dd>{shortDate(stats.started)}</dd>
-          </div>
-          <div>
-            <dt>last patch</dt>
-            <dd>{ago(stats.pushed)}</dd>
-          </div>
-          <div>
-            <dt>latest</dt>
-            <dd>{stats.version}</dd>
-          </div>
-        </dl>
-      </motion.div>
-
-      <motion.dl className="sheet-specs" variants={rise}>
-        {title.specs.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd>{v}</dd>
-          </div>
-        ))}
-      </motion.dl>
-
-      <motion.a className="repo" href={url} target="_blank" rel="noreferrer" variants={rise}>
-        <span className="repo-label">REPO</span>
-        <span className="repo-url">github.com/{title.repo}</span>
-        <span className="repo-arrow" aria-hidden="true">
-          →
-        </span>
-      </motion.a>
     </motion.article>
   )
 }
