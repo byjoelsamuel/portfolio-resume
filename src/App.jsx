@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, MotionConfig, useReducedMotion } from 'motion/react'
+import { AnimatePresence, MotionConfig } from 'motion/react'
 import { TITLES } from './data.js'
 import Boot from './Boot.jsx'
 import DiscCase from './DiscCase.jsx'
@@ -8,9 +8,24 @@ import { Emblem } from './Bits.jsx'
 import FitBox from './FitBox.jsx'
 import * as sfx from './sfx.js'
 
-// Boot plays once per tab session, never with reduced motion.
-function shouldBoot() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+const MOTION_KEY = 'sanity-motion'
+
+// Motion starts from the device's "reduce motion" setting, but the MOTION button
+// in the header overrides it, and that choice is remembered.
+function initialMotion() {
+  try {
+    const v = localStorage.getItem(MOTION_KEY)
+    if (v === '1') return true
+    if (v === '0') return false
+  } catch {
+    /* storage blocked */
+  }
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+// Boot plays once per tab session, and only with motion on.
+function shouldBoot(motion) {
+  if (!motion) return false
   try {
     return !sessionStorage.getItem('booted')
   } catch {
@@ -19,8 +34,24 @@ function shouldBoot() {
 }
 
 export default function App() {
-  const reduced = useReducedMotion()
-  const [booting, setBooting] = useState(shouldBoot)
+  const [motion, setMotion] = useState(initialMotion)
+  const reduced = !motion
+  const [booting, setBooting] = useState(() => shouldBoot(motion))
+
+  useEffect(() => {
+    document.documentElement.dataset.motion = motion ? 'on' : 'off'
+  }, [motion])
+
+  const toggleMotion = () => {
+    const next = !motion
+    try {
+      localStorage.setItem(MOTION_KEY, next ? '1' : '0')
+    } catch {
+      /* storage blocked */
+    }
+    setMotion(next)
+    sfx.play(next ? 'on' : 'tick')
+  }
   const [selectedId, setSelectedId] = useState(null)
   const panelRef = useRef(null)
   const selected = TITLES.find((t) => t.id === selectedId)
@@ -64,7 +95,7 @@ export default function App() {
   }, [selectedId])
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={motion ? 'never' : 'always'}>
       <AnimatePresence>{booting && <Boot key="boot" onDone={finishBoot} />}</AnimatePresence>
 
       {!booting && (
@@ -79,11 +110,23 @@ export default function App() {
               <button
                 type="button"
                 className="mast-snd"
+                aria-pressed={motion}
+                aria-label={motion ? 'Turn animations off' : 'Turn animations on'}
+                title="Animations. Starts from your device's reduce-motion setting."
+                onClick={toggleMotion}
+              >
+                <span aria-hidden="true">{motion ? '▶' : '❚❚'}</span>
+                <span className="lbl"> MOTION {motion ? 'ON' : 'OFF'}</span>
+              </button>
+              <button
+                type="button"
+                className="mast-snd"
                 aria-pressed={!muted}
                 aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
                 onClick={toggleSound}
               >
-                <span aria-hidden="true">{muted ? '×' : '♪'}</span> SOUND {muted ? 'OFF' : 'ON'}
+                <span aria-hidden="true">{muted ? '×' : '♪'}</span>
+                <span className="lbl"> SOUND {muted ? 'OFF' : 'ON'}</span>
               </button>
               <a
                 className="mast-gh"
@@ -99,7 +142,7 @@ export default function App() {
 
           <div className="ticker" aria-hidden="true">
             <div className="ticker-track">
-              {[0, 1].map((k) => (
+              {[0, 1, 2, 3, 4, 5].map((k) => (
                 <span key={k}>
                   {TITLES.map((t) => (
                     <span key={t.id}>
@@ -117,7 +160,6 @@ export default function App() {
               <div className="hero">
                 <p className="hero-kicker">
                   <span>WORKS</span>
-                  <span className="kana">ジョエル・サミュエル</span>
                 </p>
                 <h1 className="hero-name chrome">
                   JOEL

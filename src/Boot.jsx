@@ -131,7 +131,6 @@ export default function Boot({ onDone }) {
           </motion.p>
         </div>
         <div className="boot-corner boot-tl">VOL.01 · BYJOELSAMUEL</div>
-        <div className="boot-corner boot-tr">ソフトウェア</div>
         <div className="boot-corner boot-bl">SNTY-00000</div>
         <div className="boot-corner boot-br">PRESS ANY KEY</div>
       </motion.div>
