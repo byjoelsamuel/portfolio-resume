@@ -6,6 +6,7 @@ import DiscCase from './DiscCase.jsx'
 import { Sheet, EmptySheet } from './Panel.jsx'
 import { Emblem } from './Bits.jsx'
 import FitBox from './FitBox.jsx'
+import * as sfx from './sfx.js'
 
 // Boot plays once per tab session, never with reduced motion.
 function shouldBoot() {
@@ -33,8 +34,19 @@ export default function App() {
     setBooting(false)
   }, [])
 
+  const [muted, setMutedState] = useState(sfx.isMuted)
+  const toggleSound = () => {
+    const next = !muted
+    sfx.setMuted(next)
+    setMutedState(next)
+    if (!next) sfx.play('on')
+  }
+
   const pick = (id) => {
-    setSelectedId((cur) => (cur === id ? null : id))
+    const index = TITLES.findIndex((t) => t.id === id)
+    const closing = selectedId === id
+    sfx.play(closing ? 'close' : 'open', { index })
+    setSelectedId(closing ? null : id)
     // on phones the panel is under the shelf, so bring it into view
     if (window.matchMedia('(max-width: 900px)').matches) {
       setTimeout(() => panelRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 120)
@@ -42,10 +54,14 @@ export default function App() {
   }
 
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && setSelectedId(null)
+    const onKey = (e) => {
+      if (e.key !== 'Escape' || !selectedId) return
+      sfx.play('close', { index: TITLES.findIndex((t) => t.id === selectedId) })
+      setSelectedId(null)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [selectedId])
 
   return (
     <MotionConfig reducedMotion="user">
@@ -59,9 +75,26 @@ export default function App() {
               <span>SANITY.MEDIA</span>
             </div>
             <span className="mast-mid">SOFTWARE · VOL.01 · 2026</span>
-            <a className="mast-gh" href="https://github.com/byjoelsamuel" target="_blank" rel="noreferrer">
-              @byjoelsamuel
-            </a>
+            <div className="mast-right">
+              <button
+                type="button"
+                className="mast-snd"
+                aria-pressed={!muted}
+                aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
+                onClick={toggleSound}
+              >
+                <span aria-hidden="true">{muted ? '×' : '♪'}</span> SOUND {muted ? 'OFF' : 'ON'}
+              </button>
+              <a
+                className="mast-gh"
+                href="https://github.com/byjoelsamuel"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => sfx.play('link')}
+              >
+                @byjoelsamuel
+              </a>
+            </div>
           </header>
 
           <div className="ticker" aria-hidden="true">
@@ -129,7 +162,12 @@ export default function App() {
           <footer className="foot">
             <span>© 2026 byjoelsamuel</span>
             <span>@byjoelsamuel on insta &amp; yt</span>
-            <a href="https://github.com/byjoelsamuel" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/byjoelsamuel"
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => sfx.play('link')}
+            >
               github.com/byjoelsamuel
             </a>
           </footer>

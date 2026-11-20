@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { Emblem } from './Bits.jsx'
+import * as sfx from './sfx.js'
 
 const PAL = [
   [22, 40, 120],
@@ -70,7 +71,10 @@ export default function Boot({ onDone }) {
   useEffect(() => {
     const timers = STEPS.map(([ms, text]) => setTimeout(() => setLine(text), ms))
     timers.push(setTimeout(onDone, 3300))
-    const skip = () => onDone()
+    const skip = () => {
+      sfx.play('tick')
+      onDone()
+    }
     window.addEventListener('keydown', skip)
     window.addEventListener('pointerdown', skip)
     return () => {
